@@ -1,105 +1,82 @@
 import os
 import uvicorn
+import requests
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from dotenv import load_dotenv
-from transformers import pipeline
 
-# Load environment variables
 load_dotenv()
 
-app = FastAPI(
-    title="Multi-Model AI Serving API",
-    description="Production-ready API routing requests seamlessly to Hugging Face models."
-)
+app = FastAPI()
 
-# CORS configuration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-        "*"
-    ],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Hugging Face token
 HF_TOKEN = os.getenv("HF_TOKEN")
 
-if not HF_TOKEN:
-    raise RuntimeError("HF_TOKEN missing in environment variables")
+HEADERS = {
+    "Authorization": f"Bearer {HF_TOKEN}"
+}
 
-# -----------------------------
-# Lightweight Local Models
-# -----------------------------
+# Small hosted models
+TEXT_MODEL = "https://api-inference.huggingface.co/models/distilgpt2"
 
-# Sentiment Analysis
-sentiment_pipeline = pipeline(
-    "sentiment-analysis",
-    model="distilbert-base-uncased-finetuned-sst-2-english"
-)
-
-# Text Generation
-text_generation_pipeline = pipeline(
-    "text-generation",
-    model="distilgpt2"
-)
-
-# -----------------------------
-# Request Schema
-# -----------------------------
+SENTIMENT_MODEL = "https://api-inference.huggingface.co/models/distilbert-base-uncased-finetuned-sst-2-english"
 
 class AIRequest(BaseModel):
     inputs: str
 
-# -----------------------------
-# Health Check
-# -----------------------------
-
 @app.get("/")
-def health_check():
-    return {
-        "status": "online",
-        "message": "Multi-Model AI Server is running flawlessly."
-    }
+def home():
+    return {"status": "online"}
 
-# -----------------------------
-# Text Generation Endpoint
-# -----------------------------
+def query_model(url, payload):
+
+    response = requests.post(
+        url,
+        headers=HEADERS,
+        json=payload
+    )
+
+    if response.status_code != 200:
+        raise HTTPException(
+            status_code=response.status_code,
+            detail=response.text
+        )
+
+    return response.json()
 
 @app.post("/api/generate")
 async def generate_text(request: AIRequest):
 
-    result = text_generation_pipeline(
-        request.inputs,
-        max_length=50,
-        num_return_sequences=1
-    )
+    payload = {
+        "inputs": request.inputs
+    }
+
+    result = query_model(TEXT_MODEL, payload)
 
     return {
         "result": result[0]["generated_text"]
     }
 
-# -----------------------------
-# Sentiment Analysis Endpoint
-# -----------------------------
-
 @app.post("/api/sentiment")
-async def analyze_sentiment(request: AIRequest):
+async def sentiment(request: AIRequest):
 
-    result = sentiment_pipeline(request.inputs)
+    payload = {
+        "inputs": request.inputs
+    }
+
+    result = query_model(SENTIMENT_MODEL, payload)
 
     return {
         "result": result[0]
     }
-
-# -----------------------------
-# Run Server
-# -----------------------------
 
 if __name__ == "__main__":
     uvicorn.run(
