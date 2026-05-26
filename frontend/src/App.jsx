@@ -8,7 +8,7 @@ function App() {
   const [loading, setLoading] = useState(false);
 
   // Targets localhost explicitly to cleanly align with browser-side origin bindings
-  const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+  const API_BASE_URL = 'https://ai-model-hub-2q7b.onrender.com';  
   
   const handleSubmit = async (e) => {
     e.preventDefault();
