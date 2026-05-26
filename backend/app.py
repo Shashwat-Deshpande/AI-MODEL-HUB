@@ -4,7 +4,6 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from dotenv import load_dotenv
-import requests
 from transformers import pipeline
 
 # Load environment variables
@@ -20,7 +19,8 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:5173",
-        "http://127.0.0.1:5173"
+        "http://127.0.0.1:5173",
+        "*"
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -31,80 +31,79 @@ app.add_middleware(
 HF_TOKEN = os.getenv("HF_TOKEN")
 
 if not HF_TOKEN:
-    raise RuntimeError("HF_TOKEN missing in .env file")
+    raise RuntimeError("HF_TOKEN missing in environment variables")
 
-HEADERS = {
-    "Authorization": f"Bearer {HF_TOKEN}"
-}
+# -----------------------------
+# Lightweight Local Models
+# -----------------------------
 
-# Text generation model
-TEXT_GEN_MODEL = "https://api-inference.huggingface.co/models/google/flan-t5-base"
-
-# LOCAL sentiment analysis pipeline
+# Sentiment Analysis
 sentiment_pipeline = pipeline(
     "sentiment-analysis",
     model="distilbert-base-uncased-finetuned-sst-2-english"
 )
 
+# Text Generation
 text_generation_pipeline = pipeline(
     "text-generation",
     model="distilgpt2"
 )
 
-# Request schema
+# -----------------------------
+# Request Schema
+# -----------------------------
+
 class AIRequest(BaseModel):
     inputs: str
 
-# Hugging Face API helper
-def query_hf_api(url: str, payload: dict):
-    try:
-        response = requests.post(
-            url,
-            headers=HEADERS,
-            json=payload,
-            timeout=30
-        )
+# -----------------------------
+# Health Check
+# -----------------------------
 
-    except requests.exceptions.Timeout:
-        raise HTTPException(
-            status_code=504,
-            detail="Hugging Face request timed out."
-        )
+@app.get("/")
+def health_check():
+    return {
+        "status": "online",
+        "message": "Multi-Model AI Server is running flawlessly."
+    }
 
-    except requests.exceptions.RequestException as e:
-        raise HTTPException(
-            status_code=500,
-            detail=str(e)
-        )
-
-    if response.status_code != 200:
-        raise HTTPException(
-            status_code=response.status_code,
-            detail=response.text
-        )
-
-    return response.json()
+# -----------------------------
+# Text Generation Endpoint
+# -----------------------------
 
 @app.post("/api/generate")
 async def generate_text(request: AIRequest):
+
     result = text_generation_pipeline(
         request.inputs,
         max_length=50,
         num_return_sequences=1
     )
 
-    return {"result": result[0]["generated_text"]}
+    return {
+        "result": result[0]["generated_text"]
+    }
 
-# Local sentiment analysis endpoint
+# -----------------------------
+# Sentiment Analysis Endpoint
+# -----------------------------
+
 @app.post("/api/sentiment")
 async def analyze_sentiment(request: AIRequest):
-    result = sentiment_pipeline(request.inputs)
-    return {"result": result[0]}
 
-# Run server
+    result = sentiment_pipeline(request.inputs)
+
+    return {
+        "result": result[0]
+    }
+
+# -----------------------------
+# Run Server
+# -----------------------------
+
 if __name__ == "__main__":
     uvicorn.run(
-    "app:app",
-    host="0.0.0.0",
-    port=int(os.environ.get("PORT", 8000))
-    ) 
+        "app:app",
+        host="0.0.0.0",
+        port=int(os.environ.get("PORT", 8000))
+    )
