@@ -1,0 +1,160 @@
+/* Force the root container to take up full screen space and center its contents */
+html, body, #root {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #f8fafc; /* Matches your --bg-color */
+}
+
+:root {
+  --bg-color: #f8fafc;       /* Clean light background */
+  --card-bg: #ffffff;       /* Pure white card */
+  --accent: #2563eb;         /* Sleek royal blue */
+  --accent-hover: #1d4ed8;
+  --text-main: #0f172a;      /* Deep slate for readability */
+  --text-muted: #64748b;     /* Soft gray for subtitles */
+  --border-color: #e2e8f0;   /* Light gray border */
+  --success: #10b981;        /* Clean emerald green */
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-main);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;         /* Centers the application vertically on screen */
+  padding: 1rem;
+  box-sizing: border-box;
+}
+
+.app-container {
+  width: 100%;
+  max-width: 540px;          /* Slightly narrower for a more refined, minimal look */
+  background: var(--card-bg);
+  padding: 2.5rem;
+  border-radius: 16px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 10px 15px -3px rgba(0, 0, 0, 0.03);
+  border: 1px solid var(--border-color);
+}
+
+header {
+  text-align: center;
+  margin-bottom: 2.5rem;
+}
+
+header h1 { 
+  margin: 0 0 0.5rem 0;      /* Fixed overlapping by adding explicit bottom margin */
+  color: var(--text-main); 
+  font-size: 2.25rem;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+}
+
+header p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+
+.tab-buttons {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 1.5rem;
+  background: #f1f5f9;       /* Subtle pill container background */
+  padding: 4px;
+  border-radius: 8px;
+}
+
+.tab-buttons button {
+  flex: 1;
+  padding: 10px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.tab-buttons button.active {
+  background: var(--card-bg);
+  color: var(--accent);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.tab-buttons button:hover:not(.active) {
+  color: var(--text-main);
+}
+
+textarea {
+  width: 100%;
+  padding: 14px;
+  box-sizing: border-box;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+  border-radius: 8px;
+  resize: none;              /* Prevents manual resizing from breaking the layout */
+  margin-bottom: 1.25rem;
+  font-size: 0.95rem;
+  font-family: inherit;
+  transition: border-color 0.2s;
+}
+
+textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+form button {
+  width: 100%;
+  padding: 12px;
+  background: var(--text-main); /* Minimal dark gray/black button for a premium look */
+  border: none;
+  color: white;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  transition: background 0.2s;
+}
+
+form button:hover {
+  background: #1e293b;
+}
+
+form button:disabled {
+  background: #cbd5e1;
+  cursor: not-allowed;
+}
+
+.output-box {
+  margin-top: 1.75rem;
+  padding: 16px;
+  background: #f8fafc;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+}
+
+.output-box h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+.output-box p {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.5;
+}
