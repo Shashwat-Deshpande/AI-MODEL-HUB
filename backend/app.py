@@ -48,7 +48,7 @@ sentiment_pipeline = pipeline(
 
 text_generation_pipeline = pipeline(
     "text-generation",
-    model="google/flan-t5-base"
+    model="distilgpt2"
 )
 
 # Request schema
@@ -87,33 +87,24 @@ def query_hf_api(url: str, payload: dict):
 
 @app.post("/api/generate")
 async def generate_text(request: AIRequest):
-
     result = text_generation_pipeline(
         request.inputs,
-        max_new_tokens=100
+        max_length=50,
+        num_return_sequences=1
     )
 
-    generated_text = result[0]["generated_text"]
-
-    return {
-        "result": generated_text
-    }
+    return {"result": result[0]["generated_text"]}
 
 # Local sentiment analysis endpoint
 @app.post("/api/sentiment")
 async def analyze_sentiment(request: AIRequest):
-
     result = sentiment_pipeline(request.inputs)
-
-    return {
-        "result": result[0]
-    }
+    return {"result": result[0]}
 
 # Run server
 if __name__ == "__main__":
     uvicorn.run(
-        "app:app",
-        host="0.0.0.0",
-        port=8000,
-        reload=True
-    )
+    "app:app",
+    host="0.0.0.0",
+    port=int(os.environ.get("PORT", 8000))
+    ) 
